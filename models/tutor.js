@@ -2,12 +2,18 @@ const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   return sequelize.define(
-    "User",
+    "Tutor",
     {
-      user_id: {
+      tutor_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
+      },
+
+      account_status: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        defaultValue: "active",
       },
 
       name: {
@@ -20,7 +26,7 @@ module.exports = (sequelize) => {
       },
 
       phone: {
-        type: DataTypes.STRING(20), // better for phone numbers
+        type: DataTypes.STRING(20),
       },
 
       email: {
@@ -39,12 +45,12 @@ module.exports = (sequelize) => {
       },
 
       password: {
-        type: DataTypes.STRING(255), // store hashed password
+        type: DataTypes.STRING(255),
         allowNull: false,
       },
     },
     {
-      tableName: "users",
+      tableName: "tutors",
       timestamps: false,
       underscored: true,
     }
