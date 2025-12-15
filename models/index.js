@@ -1,7 +1,14 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-});
+const userFavouriteAd = require("./userFavouriteAd");
+const sequelize = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: "postgres",
+  }
+);
 
 const User = require("./user")(sequelize);
 const Tutor = require("./tutor")(sequelize);
@@ -24,43 +31,131 @@ const UserFavouriteInstrument = require("./userFavouriteInstrument")(
 );
 const UserFavouriteAd = require("./userFavouriteAd")(sequelize, DataTypes);
 
-/* ---------- CORE RELATIONSHIPS ---------- */
+// sync the models here
 
-User.belongsTo(Location);
-Tutor.belongsTo(Location);
+const init = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Successful connection to PostgreSQL Database");
 
-Tutor.hasMany(Ad);
-Ad.belongsTo(Tutor);
+    // 🔑 CREATE BASE TABLES FIRST
+    await Location.sync();
+    await Instrument.sync();
 
-Ad.belongsTo(Location);
-Ad.belongsTo(Instrument);
+    // 🔑 THEN TABLES THAT DEPEND ON THEM
+    await User.sync();
+    await Tutor.sync();
 
-Ad.hasMany(Availability);
-Availability.belongsTo(Ad);
+    // 🔑 THEN ADS & AVAILABILITY
+    await Ad.sync();
+    await Availability.sync();
 
-Availability.belongsTo(User);
-User.hasMany(Availability);
+    // 🔑 THEN JOIN TABLES
+    await UserFavouriteTutor.sync();
+    await UserFavouriteLocation.sync();
+    await UserFavouriteInstrument.sync();
+    await UserFavouriteAd.sync();
 
-/* ---------- FAVOURITES (M:N) ---------- */
+    console.log("All models synced");
+  } catch (err) {
+    console.error(err);
+  }
+};
 
+init();
+
+/* =======================
+   CORE RELATIONSHIPS
+   ======================= */
+
+// USERS ↔ LOCATIONS
+User.belongsTo(Location, {
+  foreignKey: "location_id",
+});
+Location.hasMany(User, {
+  foreignKey: "location_id",
+});
+
+// TUTORS ↔ LOCATIONS
+Tutor.belongsTo(Location, {
+  foreignKey: "location_id",
+});
+Location.hasMany(Tutor, {
+  foreignKey: "location_id",
+});
+
+// TUTORS ↔ ADS
+Tutor.hasMany(Ad, {
+  foreignKey: "tutor_id",
+});
+Ad.belongsTo(Tutor, {
+  foreignKey: "tutor_id",
+});
+
+// ADS ↔ LOCATIONS
+Ad.belongsTo(Location, {
+  foreignKey: "location_id",
+});
+Location.hasMany(Ad, {
+  foreignKey: "location_id",
+});
+
+// ADS ↔ INSTRUMENTS
+Ad.belongsTo(Instrument, {
+  foreignKey: "instrument_id",
+});
+Instrument.hasMany(Ad, {
+  foreignKey: "instrument_id",
+});
+
+// ADS ↔ AVAILABILITY
+Ad.hasMany(Availability, {
+  foreignKey: "ad_id",
+});
+Availability.belongsTo(Ad, {
+  foreignKey: "ad_id",
+});
+
+// USERS ↔ AVAILABILITY
+User.hasMany(Availability, {
+  foreignKey: "user_id",
+});
+Availability.belongsTo(User, {
+  foreignKey: "user_id",
+});
+
+// USERS ↔ TUTORS (FAVOURITES)
 User.belongsToMany(Tutor, {
   through: UserFavouriteTutor,
+  foreignKey: "user_id",
+  otherKey: "tutor_id",
 });
 
 Tutor.belongsToMany(User, {
   through: UserFavouriteTutor,
+  foreignKey: "tutor_id",
+  otherKey: "user_id",
 });
 
+// USERS ↔ LOCATIONS
 User.belongsToMany(Location, {
   through: UserFavouriteLocation,
+  foreignKey: "user_id",
+  otherKey: "location_id",
 });
 
+// USERS ↔ INSTRUMENTS
 User.belongsToMany(Instrument, {
   through: UserFavouriteInstrument,
+  foreignKey: "user_id",
+  otherKey: "instrument_id",
 });
 
+// USERS ↔ ADS
 User.belongsToMany(Ad, {
   through: UserFavouriteAd,
+  foreignKey: "user_id",
+  otherKey: "ad_id",
 });
 
 module.exports = {

@@ -3,10 +3,10 @@ const Models = require("../models");
 
 const getInstruments = (res) => {
   Models.Instrument.findAll({})
-    .then(data => {
+    .then((data) => {
       res.send({ result: 200, data });
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
       res.send({ result: 500, error: err.message });
     });
@@ -14,10 +14,10 @@ const getInstruments = (res) => {
 
 const createInstrument = (data, res) => {
   Models.Instrument.create(data)
-    .then(data => {
+    .then((data) => {
       res.send({ result: 200, data });
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
       res.send({ result: 500, error: err.message });
     });
