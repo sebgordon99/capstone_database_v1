@@ -11,4 +11,12 @@ router.post("/", (req, res) => {
   Controller.createTutor(req.body, res);
 });
 
+router.put("/:tutor_id", (req, res) => {
+  Controller.updateTutor(req, res);
+});
+
+router.delete("/:tutor_id", (req, res) => {
+  Controller.deleteTutor(req, res);
+});
+
 module.exports = router;
