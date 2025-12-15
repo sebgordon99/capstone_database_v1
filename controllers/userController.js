@@ -23,7 +23,34 @@ const createUser = (data, res) => {
     });
 };
 
+const updateUser = (req, res) => {
+  Models.User.update(req.body, {
+    where: { user_id: req.params.user_id },
+    returning: true,
+  })
+    .then((data) => {
+      res.send({ result: 200, data: data });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({ result: 500, error: err.message });
+    });
+};
+
+const deleteUser = (req, res) => {
+  Models.User.destroy({ where: { user_id: req.params.user_id } })
+    .then((data) => {
+      res.send({ result: 200, data: data });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send({ result: 500, error: err.message });
+    });
+};
+
 module.exports = {
   getUsers,
   createUser,
+  updateUser,
+  deleteUser,
 };

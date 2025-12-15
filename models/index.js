@@ -32,25 +32,26 @@ const UserFavouriteInstrument = require("./userFavouriteInstrument")(
 const UserFavouriteAd = require("./userFavouriteAd")(sequelize, DataTypes);
 
 // sync the models here
+// had to change the sync order to make sure base tables were created first
 
 const init = async () => {
   try {
     await sequelize.authenticate();
     console.log("Successful connection to PostgreSQL Database");
 
-    // 🔑 CREATE BASE TABLES FIRST
+    // CREATE BASE TABLES FIRST
     await Location.sync();
     await Instrument.sync();
 
-    // 🔑 THEN TABLES THAT DEPEND ON THEM
+    // THEN TABLES THAT DEPEND ON THEM
     await User.sync();
     await Tutor.sync();
 
-    // 🔑 THEN ADS & AVAILABILITY
+    // THEN ADS & AVAILABILITY
     await Ad.sync();
     await Availability.sync();
 
-    // 🔑 THEN JOIN TABLES
+    // THEN JOIN TABLES
     await UserFavouriteTutor.sync();
     await UserFavouriteLocation.sync();
     await UserFavouriteInstrument.sync();
@@ -63,10 +64,6 @@ const init = async () => {
 };
 
 init();
-
-/* =======================
-   CORE RELATIONSHIPS
-   ======================= */
 
 // USERS ↔ LOCATIONS
 User.belongsTo(Location, {
